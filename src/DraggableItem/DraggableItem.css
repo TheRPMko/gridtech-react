@@ -1,0 +1,170 @@
+.delete-handle {
+  display: none;
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  background: var(--delete-button-background, #ff4444);
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 0.5rem 0.5rem 0.5rem 0;
+  transition: opacity var(--transition-duration) var(--transition-timing),
+    background-color var(--transition-duration) var(--transition-timing);
+}
+
+.delete-icon {
+  position: absolute;
+  top: -4px;
+}
+
+.draggable-item.edit-mode .delete-handle {
+  display: block;
+  opacity: 0.6;
+}
+
+.draggable-item.edit-mode .delete-handle:hover {
+  opacity: 0.8;
+  background: var(--delete-button-hover-background, #ff1111);
+}
+
+.draggable-item {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--widget-border);
+  border-radius: 0.5rem;
+  background-color: var(--widget-background);
+  box-shadow: 0 2px 8px var(--widget-shadow);
+  user-select: none;
+  transition: all var(--transition-duration) var(--transition-timing);
+
+  /* Calculate position and size using CSS variables */
+  left: calc(var(--cell-x) * var(--grid-cell-width) + var(--grid-widget-gap));
+  top: calc(var(--cell-y) * var(--grid-cell-height) + var(--grid-widget-gap));
+  width: calc(
+    var(--cell-w) * var(--grid-cell-width) - var(--grid-widget-gap) * 2
+  );
+  height: calc(
+    var(--cell-h) * var(--grid-cell-height) - var(--grid-widget-gap) * 2
+  );
+}
+
+.draggable-item:hover {
+  box-shadow: 0 4px 12px var(--widget-hover-shadow);
+}
+
+.draggable-item.dragging {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Disable handle interactions while any item is being dragged */
+.grid-container:has(.draggable-item.dragging) .delete-handle,
+.grid-container:has(.draggable-item.dragging) .resize-handle {
+  pointer-events: none;
+}
+
+.draggable-item.resizing {
+  border: 2px solid var(--add-button-background);
+  z-index: 1000;
+  box-shadow: 0 0 0 1px rgba(74, 158, 255, 0.25),
+    0 4px 12px var(--widget-hover-shadow);
+}
+
+.widget-content {
+  padding: var(--widget-padding);
+  width: 100%;
+  height: 100%;
+}
+
+.drag-handle {
+  display: none; /* Hidden by default */
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 8px;
+  background: var(--drag-handle-color);
+  cursor: grab;
+  z-index: 2;
+  border-radius: 4px 4px 0 0;
+  transition: opacity var(--transition-duration) var(--transition-timing),
+    background-color var(--transition-duration) var(--transition-timing);
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+}
+
+.draggable-item.edit-mode .drag-handle {
+  display: flex;
+  opacity: 0.6;
+}
+
+.draggable-item.edit-mode .drag-handle:hover {
+  opacity: 1;
+  background: var(--drag-handle-hover);
+}
+
+.drag-handle::after {
+  content: "";
+  width: 20px;
+  height: 2px;
+  background: var(--widget-background);
+  border-radius: 1px;
+}
+
+.resize-handle {
+  display: none;
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 14px;
+  height: 14px;
+  background: var(--resize-handle-color);
+  cursor: nwse-resize;
+  z-index: 2;
+  border-radius: 0 0.5rem 1rem 0.5rem;
+  transition: opacity var(--transition-duration) var(--transition-timing),
+    background-color var(--transition-duration) var(--transition-timing);
+  opacity: 0;
+}
+
+.draggable-item.edit-mode .resize-handle {
+  display: block;
+  opacity: 0.6;
+}
+
+.draggable-item.edit-mode .resize-handle:hover,
+.draggable-item.edit-mode.resizing .resize-handle {
+  opacity: 1;
+  background: var(--resize-handle-hover);
+}
+
+@keyframes pulse-preview {
+  0% {
+    box-shadow: 0 0 0 0 var(--preview-valid-background);
+  }
+  70% {
+    box-shadow: 0 0 0 10px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.widget-preview {
+  border-radius: 0.5rem;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.widget-preview.active {
+  border: 2px dashed var(--preview-valid-border);
+  background-color: var(--preview-valid-background);
+  animation: pulse-preview 1.5s infinite;
+}
+
+.widget-preview.reflow {
+  border: 2px dashed var(--preview-reflow-border);
+  background-color: var(--preview-reflow-background);
+  animation: pulse-preview 1.5s infinite;
+}

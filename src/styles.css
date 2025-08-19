@@ -1,0 +1,291 @@
+/* GridTech Package Styles */
+
+/* Grid Container Styles */
+.grid-container {
+  position: relative;
+  width: fit-content; /* Only as wide as its content */
+  margin: 0 auto; /* Center horizontally */
+  
+  /* Ensure consistent scaling behavior */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grid-container.edit-mode .toggle-edit {
+  background-color: var(--add-button-background);
+}
+
+.grid-container:not(.edit-mode) .add-widget-button {
+  display: none;
+}
+
+.grid-inner {
+  position: relative;
+  background-color: var(--grid-background);
+  border: 1px solid var(--grid-line-color);
+  box-shadow: 0 0 10px var(--grid-shadow);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  transition: background-image var(--transition-duration) var(--transition-timing);
+}
+
+.grid-inner.edit-mode {
+  background-image: linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+                    linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+}
+
+.add-widget-button {
+  position: absolute;
+  top: -50px;
+  left: 0;
+  padding: 8px 16px;
+  background-color: var(--add-button-background);
+  color: var(--add-button-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color var(--transition-duration) var(--transition-timing);
+  white-space: nowrap; 
+  z-index: 10; 
+}
+
+.add-widget-button:hover {
+  background-color: var(--add-button-hover-background);
+}
+
+.toggle-edit {
+  position: absolute;
+  top: -50px;
+  right: 0;
+  padding: 8px 16px;
+  background-color: var(--edit-button-background);
+  color: var(--edit-button-color);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color var(--transition-duration) var(--transition-timing);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.toggle-edit:hover {
+  background-color: var(--edit-button-hover-background);
+}
+
+.grid-preview {
+  position: absolute;
+  border: 2px dashed var(--preview-border-valid);
+  background-color: var(--preview-background-valid);
+  border-radius: 0.25rem;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 1;
+  /* CSS variables will be set inline for position and size */
+}
+
+.grid-preview.invalid {
+  border-color: var(--preview-border-invalid);
+  background-color: var(--preview-background-invalid);
+}
+
+/* Reflow preview styles */
+.grid-preview.reflow {
+  border-color: var(--reflow-preview-border);
+  background-color: var(--reflow-preview-background);
+  opacity: 0.5;
+}
+
+.grid-controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Draggable Item Styles */
+.delete-handle {
+  display: none;
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  background: var(--delete-button-background, #ff4444);
+  cursor: pointer;
+  z-index: 2;
+  border-radius: 0.5rem 0.5rem 0.5rem 0;
+  transition: opacity var(--transition-duration) var(--transition-timing),
+    background-color var(--transition-duration) var(--transition-timing);
+}
+
+.delete-icon {
+  position: absolute;
+  top: -4px;
+}
+
+.draggable-item.edit-mode .delete-handle {
+  display: block;
+  opacity: 0.6;
+}
+
+.draggable-item.edit-mode .delete-handle:hover {
+  opacity: 0.8;
+  background: var(--delete-button-hover-background, #ff1111);
+}
+
+.draggable-item {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid var(--widget-border);
+  border-radius: 0.5rem;
+  background-color: var(--widget-background);
+  box-shadow: 0 2px 8px var(--widget-shadow);
+  user-select: none;
+  transition: all var(--transition-duration) var(--transition-timing);
+
+  /* Calculate position and size using CSS variables */
+  left: calc(var(--cell-x) * var(--grid-cell-width) + var(--grid-widget-gap));
+  top: calc(var(--cell-y) * var(--grid-cell-height) + var(--grid-widget-gap));
+  width: calc(
+    var(--cell-w) * var(--grid-cell-width) - var(--grid-widget-gap) * 2
+  );
+  height: calc(
+    var(--cell-h) * var(--grid-cell-height) - var(--grid-widget-gap) * 2
+  );
+}
+
+.draggable-item:hover {
+  box-shadow: 0 4px 12px var(--widget-shadow-hover);
+}
+
+.draggable-item.dragging {
+  z-index: 1000;
+  transform: rotate(3deg);
+  opacity: 0.9;
+}
+
+.widget-content {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--widget-text);
+}
+
+.widget-id {
+  font-family: monospace;
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.widget-size {
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-top: auto;
+}
+
+/* Resize handle styles */
+.resize-handle {
+  position: absolute;
+  background: var(--resize-handle-background, #666);
+  opacity: 0;
+  transition: opacity var(--transition-duration) var(--transition-timing);
+}
+
+.draggable-item.edit-mode .resize-handle {
+  opacity: 0.6;
+}
+
+.resize-handle:hover {
+  opacity: 1 !important;
+}
+
+.resize-handle.bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: se-resize;
+  border-radius: 0 0 0.5rem 0;
+}
+
+.resize-handle.bottom {
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 4px;
+  cursor: s-resize;
+}
+
+.resize-handle.right {
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  cursor: e-resize;
+}
+
+/* CSS Variables for theming - providing defaults */
+:root {
+  /* Grid colors */
+  --grid-background: #f5f5f5;
+  --grid-line-color: #e0e0e0;
+  --grid-shadow: rgba(0, 0, 0, 0.1);
+  
+  /* Widget colors */
+  --widget-background: #ffffff;
+  --widget-border: #d0d0d0;
+  --widget-shadow: rgba(0, 0, 0, 0.1);
+  --widget-hover-shadow: rgba(0, 0, 0, 0.2);
+  --widget-text: #333333;
+  --widget-padding: 1rem;
+  
+  /* Button colors */
+  --add-button-background: #4CAF50;
+  --add-button-hover-background: #45a049;
+  --add-button-color: white;
+  
+  --edit-button-background: #2196F3;
+  --edit-button-hover-background: #1976D2;
+  --edit-button-color: white;
+  
+  --delete-button-background: #ff4444;
+  --delete-button-hover-background: #ff1111;
+  
+  /* Handle colors */
+  --drag-handle-color: #2196F3;
+  --drag-handle-hover: #1976D2;
+  --resize-handle-color: #4CAF50;
+  --resize-handle-hover: #45a049;
+  
+  /* Resize handle colors */
+  --resize-handle-background: #666666;
+  
+  /* Preview colors */
+  --preview-border-valid: #4CAF50;
+  --preview-background-valid: rgba(76, 175, 80, 0.1);
+  --preview-border-invalid: #f44336;
+  --preview-background-invalid: rgba(244, 67, 54, 0.1);
+  --preview-valid-border: #4CAF50;
+  --preview-valid-background: rgba(76, 175, 80, 0.1);
+  --preview-reflow-border: #ff9800;
+  --preview-reflow-background: rgba(255, 152, 0, 0.1);
+  --reflow-preview-border: #ff9800;
+  --reflow-preview-background: rgba(255, 152, 0, 0.1);
+  
+  /* Transitions */
+  --transition-duration: 0.2s;
+  --transition-timing: ease-in-out;
+  
+  /* Grid spacing */
+  --grid-widget-gap: 4px;
+}
