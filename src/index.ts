@@ -8,7 +8,8 @@ export { DraggableItem } from './DraggableItem/DraggableItem';
 // Export types
 export type { 
   WidgetState, 
-  PreviewState
+  PreviewState,
+  GroupFilter
 } from './types';
 
 // Export hooks for advanced usage

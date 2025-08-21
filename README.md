@@ -10,6 +10,7 @@ A responsive, drag-and-drop widget grid component for React applications.
 - 📐 **Flexible Layout**: Configurable grid dimensions and widget sizes
 - 🎨 **Themeable**: Customizable styling with CSS variables
 - ⚡ **Performance**: Optimized for smooth interactions
+- 🔍 **Group Filtering**: Show/hide groups of widgets
 
 ## Requirements
 
@@ -58,7 +59,7 @@ function App() {
     <WidgetGrid
       cols={24}
       rows={12}
-      widgets={widgets}
+      initialWidgets={widgets}
       onWidgetsChange={setWidgets}
       widgetRenderers={widgetRenderers}
       preventOverlap={true}
@@ -78,11 +79,13 @@ export default App;
 |------|------|---------|-------------|
 | `cols` | `number` | `24` | Number of grid columns |
 | `rows` | `number` | `12` | Number of grid rows |
-| `widgets` | `WidgetState[]` | `[]` | Array of widget configurations |
+| `initialWidgets` | `WidgetState[]` | `[]` | Array of widget configurations |
 | `onWidgetsChange` | `(widgets: WidgetState[]) => void` | - | Callback when widgets change |
 | `widgetRenderers` | `{ [type: string]: ComponentType }` | - | Map of widget types to components |
 | `preventOverlap` | `boolean` | `false` | Prevent widgets from overlapping |
 | `defaultEditMode` | `boolean` | `false` | Start in edit mode |
+| `groupFilters` | `GroupFilter[]` | `[]` | Array of group visibility filters |
+| `onGroupFiltersChange` | `(filters: GroupFilter[]) => void` | - | Callback when group filters change |
 
 ### WidgetState Interface
 
@@ -95,10 +98,20 @@ interface WidgetState {
   width: number;
   height: number;
   props?: Record<string, any>;
+  groupId?: string;  // Optional group assignment for filtering
   minW?: number;
   minH?: number;
   maxW?: number;
   maxH?: number;
+}
+```
+
+### GroupFilter Interface
+
+```typescript
+interface GroupFilter {
+  groupId: string;
+  visible: boolean;
 }
 ```
 
@@ -132,6 +145,65 @@ const MyCustomGrid = () => {
   );
 };
 ```
+
+## Group Filtering
+
+GridTech React supports simple group filtering - perfect for organizing widgets by category:
+
+```tsx
+import React, { useState, useRef } from 'react';
+import { WidgetGrid, WidgetState, GroupFilter, WidgetGridRef } from 'gridtech-react';
+
+function App() {
+  const gridRef = useRef<WidgetGridRef>(null);
+  const [widgets, setWidgets] = useState<WidgetState[]>([
+    {
+      id: 'chart-1',
+      type: 'chart',
+      x: 0, y: 0, width: 4, height: 3,
+      groupId: 'analytics',  // Assign to group
+      props: { title: 'Sales Chart' }
+    },
+    {
+      id: 'metric-1', 
+      type: 'metric',
+      x: 4, y: 0, width: 2, height: 2,
+      groupId: 'kpi', // Different group
+      props: { value: 1234, label: 'Total Sales' }
+    }
+  ]);
+  
+  const [groupFilters, setGroupFilters] = useState<GroupFilter[]>([]);
+
+  // Hide/show groups
+  const toggleGroup = (groupId: string, visible: boolean) => {
+    gridRef.current?.setGroupVisible(groupId, visible);
+  };
+
+  return (
+    <div>
+      <button onClick={() => toggleGroup('analytics', false)}>
+        Hide Analytics
+      </button>
+      <button onClick={() => toggleGroup('kpi', false)}>
+        Hide KPIs  
+      </button>
+      
+      <WidgetGrid
+        ref={gridRef}
+        cols={24} rows={12}
+        initialWidgets={widgets}
+        onWidgetsChange={setWidgets}
+        groupFilters={groupFilters}
+        onGroupFiltersChange={setGroupFilters}
+        widgetRenderers={widgetRenderers}
+      />
+    </div>
+  );
+}
+```
+
+[📖 **Full Group Filtering Documentation**](docs/SIMPLE_GROUP_FILTERING.md)
 
 ### Styling
 

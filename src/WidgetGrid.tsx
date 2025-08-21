@@ -1,8 +1,8 @@
-import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import { DndContext } from '@dnd-kit/core';
 import { DraggableItem } from './DraggableItem/DraggableItem';
-import type { WidgetState } from './types';
+import type { WidgetState, GroupFilter } from './types';
 import { useWidgetActions } from './hooks/useWidgetActions';
 import { useDragHandling } from './hooks/useDragHandling';
 import { useResponsiveGrid } from './hooks/useResponsiveGrid';
@@ -41,6 +41,9 @@ interface WidgetGridProps extends GridConfig {
     props?: Record<string, any>;
     size?: { w: number; h: number };
   } | null;
+  // Simple group filters
+  groupFilters?: GroupFilter[];
+  onGroupFiltersChange?: (filters: GroupFilter[]) => void;
 }
 
 export interface WidgetGridRef {
@@ -49,6 +52,9 @@ export interface WidgetGridRef {
   setEditMode: (enabled: boolean) => void;
   getEditMode: () => boolean;
   clearAllWidgets: () => void;
+  // Simple group filtering
+  setGroupVisible: (groupId: string, visible: boolean) => void;
+  getVisibleGroups: () => string[];
 }
 
 const getCSSVariable = (name: string, fallback: number): number => {
@@ -90,8 +96,20 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
   widgetRenderers,
   showControls = false,
   addWidgetTrigger,
+  groupFilters = [],
+  onGroupFiltersChange,
 }, ref) => {
   const [isEditing, setIsEditing] = useState(defaultEditMode);
+  const [hiddenGroups, setHiddenGroups] = useState<Set<string>>(new Set());
+
+  // Create a map of group visibility for quick lookup
+  const groupVisibility = useMemo(() => {
+    const visibility = new Map<string, boolean>();
+    groupFilters.forEach(filter => {
+      visibility.set(filter.groupId, filter.visible);
+    });
+    return visibility;
+  }, [groupFilters]);
 
   // Widget management hook
   const {
@@ -123,6 +141,24 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
   // Use external widgets if provided, otherwise use internal state
   const displayWidgets = externalWidgets.length > 0 ? externalWidgets : internalWidgets;
 
+  // Filter widgets based on group visibility
+  const filteredWidgets = useMemo(() => {
+    return displayWidgets.filter(widget => {
+      // If widget has a groupId, check if that group is visible
+      if (widget.groupId) {
+        // Check groupFilters for visibility
+        const groupFilter = groupFilters.find(f => f.groupId === widget.groupId);
+        if (groupFilter) {
+          return groupFilter.visible;
+        }
+        // If no filter specified, check hiddenGroups set
+        return !hiddenGroups.has(widget.groupId);
+      }
+      // If no groupId, always show the widget
+      return true;
+    });
+  }, [displayWidgets, groupFilters, hiddenGroups]);
+
   // Drag handling hook
   const {
     draggedId,
@@ -132,7 +168,7 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
     handleDragEnd,
     handleDragCancel
   } = useDragHandling({
-    widgets: displayWidgets,
+    widgets: filteredWidgets,
     cols,
     rows,
     cellWidth,
@@ -174,6 +210,53 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
     // Note: For custom sizes, we'd need to enhance the internal addWidget function
   }, [addWidget, defaultWidgetSize]);
 
+  // Simple group visibility functions
+  const setGroupVisible = useCallback((groupId: string, visible: boolean) => {
+    if (visible) {
+      setHiddenGroups(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(groupId);
+        return newSet;
+      });
+    } else {
+      setHiddenGroups(prev => new Set(prev).add(groupId));
+    }
+
+    // Also update groupFilters if callback provided
+    if (onGroupFiltersChange) {
+      const updatedFilters = groupFilters.map(filter => 
+        filter.groupId === groupId 
+          ? { ...filter, visible }
+          : filter
+      );
+      
+      // Add new filter if it doesn't exist
+      if (!groupFilters.some(f => f.groupId === groupId)) {
+        updatedFilters.push({ groupId, visible });
+      }
+      
+      onGroupFiltersChange(updatedFilters);
+    }
+  }, [groupFilters, onGroupFiltersChange]);
+
+  const getVisibleGroups = useCallback((): string[] => {
+    const visibleGroups: string[] = [];
+    
+    // Get all unique group IDs from widgets
+    const allGroupIds = new Set(displayWidgets.map(w => w.groupId).filter(Boolean) as string[]);
+    
+    allGroupIds.forEach(groupId => {
+      const groupFilter = groupFilters.find(f => f.groupId === groupId);
+      if (groupFilter) {
+        if (groupFilter.visible) visibleGroups.push(groupId);
+      } else if (!hiddenGroups.has(groupId)) {
+        visibleGroups.push(groupId);
+      }
+    });
+    
+    return visibleGroups;
+  }, [displayWidgets, groupFilters, hiddenGroups]);
+
   // Expose functions via ref
   useImperativeHandle(ref, () => ({
     addWidget: addWidgetWithOptions,
@@ -186,8 +269,12 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
     clearAllWidgets: () => {
       setInitialWidgets([]);
       onWidgetsChange?.([]);
-    }
-  }), [addWidgetWithOptions, toggleEditMode, isEditing, onEditModeChange, onWidgetsChange]);
+    },
+    // Simple group filtering
+    setGroupVisible,
+    getVisibleGroups,
+  }), [addWidgetWithOptions, toggleEditMode, isEditing, onEditModeChange, onWidgetsChange,
+      setGroupVisible, getVisibleGroups]);
 
   const gridStyle: CSSProperties = {
     ...style,
@@ -215,7 +302,7 @@ export const WidgetGrid = forwardRef<WidgetGridRef, WidgetGridProps>(({
           </div>
         )}
         <div className={`grid-inner ${isEditing ? 'edit-mode' : ''}`} style={gridStyle}>
-          {displayWidgets.map((widget: WidgetState) => {
+          {filteredWidgets.map((widget: WidgetState) => {
             const Renderer = widgetRenderers?.[widget.type];
             return (
               <DraggableItem

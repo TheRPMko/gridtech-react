@@ -21,6 +21,7 @@ export interface WidgetState extends WidgetSizeLimits {
   height: number;
   type: string;
   props?: Record<string, any>;
+  groupId?: string;
 }
 
 export interface PreviewState {
@@ -49,4 +50,10 @@ export interface WidgetProps extends WidgetSizeLimits {
   height: number;
   showPreview?: boolean;
   previewState?: PreviewState;
+}
+
+// Widget Groups and Filters
+export interface GroupFilter {
+  groupId: string;
+  visible: boolean;
 }
