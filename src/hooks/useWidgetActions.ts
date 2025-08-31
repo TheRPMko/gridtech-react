@@ -162,6 +162,39 @@ export function useWidgetActions({
   return {
     widgets,
     addWidget,
+    // Add a helper to add widgets coming from an external source (cross-grid transfer)
+    addWidgetFromExternal: (widget: WidgetState, preserveId: boolean = true) => {
+      const incoming = { ...widget };
+      // Ensure id uniqueness if requested
+      let finalId = incoming.id;
+      if (!preserveId || widgets.some(w => w.id === incoming.id)) {
+        const timestamp = Date.now();
+        finalId = `${incoming.id}-${timestamp}`;
+      }
+
+      const boundedWidget: WidgetState = {
+        ...incoming,
+        id: finalId,
+        x: Math.max(0, Math.min(cols - (incoming.width || 1), incoming.x)),
+        y: Math.max(0, Math.min(rows - (incoming.height || 1), incoming.y)),
+        width: Math.max(1, Math.min(incoming.width || 1, cols)),
+        height: Math.max(1, Math.min(incoming.height || 1, rows))
+      };
+
+      let updatedWidgets = [...widgets, boundedWidget];
+      if (preventOverlap) {
+        try {
+          updatedWidgets = reflowWidgets(updatedWidgets, cols, rows, true, boundedWidget.id);
+        } catch (error) {
+          // If reflow fails, fallback to pushing without reflow
+        }
+      }
+
+      setWidgets(updatedWidgets);
+      onWidgetAdd?.(boundedWidget);
+      onWidgetsChange?.(updatedWidgets);
+      return boundedWidget;
+    },
     moveWidget,
     resizeWidget,
     deleteWidget,

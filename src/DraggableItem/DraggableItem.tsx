@@ -27,6 +27,8 @@ export interface DraggableItemProps {
   isEditing?: boolean;
   onResize: (id: string, newW: number, newH: number) => void;
   onDelete?: (id: string) => void;
+  /** If true, dragging is enabled regardless of isEditing state */
+  isDraggable?: boolean;
 }
 
 function DraggableItemComponent({
@@ -47,6 +49,7 @@ function DraggableItemComponent({
   isEditing = true,
   onResize,
   onDelete,
+  isDraggable,
 }: DraggableItemProps) {
   const resizing = useRef(false);
   const resizeHandler = useRef<((e: Event) => void) | null>(null);
@@ -54,9 +57,12 @@ function DraggableItemComponent({
     null
   );
 
+  // Allow dragging if isDraggable is explicitly true, or if in editing mode
+  const canDrag = isDraggable !== undefined ? isDraggable : isEditing;
+
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id,
-    disabled: !isEditing,
+    disabled: !canDrag,
   });
 
   const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -140,6 +146,7 @@ function DraggableItemComponent({
         }
         ref={setNodeRef}
       >
+        {/* Drag handle */}
         <div className="drag-handle" {...listeners} {...attributes} />
 
         {isEditing && onDelete && (
@@ -153,7 +160,9 @@ function DraggableItemComponent({
           </button>
         )}
 
-        <div className="widget-content">{children}</div>
+        <div className="widget-content">
+          {children}
+        </div>
 
         <div
           className="resize-handle"

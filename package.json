@@ -1,6 +1,6 @@
 {
   "name": "gridtech-react",
-  "version": "0.2.0",
+  "version": "0.4.1",
   "type": "module",
   "description": "Responsive drag-and-drop widget grid for React",
   "main": "dist/index.js",

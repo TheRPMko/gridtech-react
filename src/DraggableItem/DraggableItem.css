@@ -62,6 +62,12 @@
   pointer-events: none;
 }
 
+/* Hide hover-to-add overlay when dragging or resizing */
+.grid-container:has(.draggable-item.dragging) .add-widget-placeholder,
+.grid-container:has(.draggable-item.resizing) .add-widget-placeholder {
+  display: none !important;
+}
+
 .draggable-item.resizing {
   border: 2px solid var(--add-button-background);
   z-index: 1000;

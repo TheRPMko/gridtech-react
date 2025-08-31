@@ -57,3 +57,30 @@ export interface GroupFilter {
   groupId: string;
   visible: boolean;
 }
+
+// Available Widget Types for Adding
+export interface AvailableWidget {
+  type: string;
+  name: string;
+  icon?: string;
+  defaultSize?: { w: number; h: number };
+  minSize?: { w: number; h: number };
+  maxSize?: { w: number; h: number };
+}
+
+// Grid Interaction Modes
+export interface InteractionModes {
+  editable?: boolean;    // Enable move/delete
+  draggable?: boolean;   // Enable drag-and-drop
+  resizable?: boolean;   // Enable resize handles
+  viewMode?: boolean;    // Override all to read-only (but allow drag if draggable=true)
+}
+
+// Widget Placement State
+export interface WidgetPlacementState {
+  type: string;
+  startX: number;
+  startY: number;
+  currentW: number;
+  currentH: number;
+}
